@@ -39,12 +39,15 @@ function GetPlatform([string]$platform)
     return $platform
 }
 
-$components = @("aws-cpp-sdk-core","aws-cpp-sdk-s3","aws-cpp-sdk-transfer","aws-cpp-sdk-transfer")
-$builds = @("Debug")
+$components = @("aws-cpp-sdk-core","aws-cpp-sdk-s3","aws-cpp-sdk-transfer")
+$builds = @("Release", "Debug")
 
 # Set-PSDebug -Trace 1
 
-foreach ($platform in "x64")
+# Disable all warnings to prevent warnings as errors
+${env:_CL_}="/w"
+
+foreach ($platform in "x64", "x86")
 {
     SetupEnvironment $platform $sdkver
     $slnPlatform = GetPlatform $platform
@@ -61,7 +64,7 @@ foreach ($platform in "x64")
         # run cmake 
         pushd "build\msw\${build}"
         "Executing cmake for ${build}..."
-        cmake ..\..\.. -G "Visual Studio 14 Win64" -DCMAKE_BUILD_TYPE="${build}"
+        cmake ..\..\.. -G "Visual Studio 14 2015" -A $slnPlatform -DBUILD_ONLY="s3;transfer" -DCMAKE_BUILD_TYPE="${build}"
 
         foreach($component in $components)
         {
